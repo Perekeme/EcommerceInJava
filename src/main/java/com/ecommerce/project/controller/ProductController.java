@@ -1,6 +1,5 @@
 package com.ecommerce.project.controller;
 import com.ecommerce.project.config.AppConstants;
-import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.ProductDTO;
 import com.ecommerce.project.payload.ProductResponse;
 import com.ecommerce.project.service.ProductService;
@@ -9,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import static com.ecommerce.project.config.AppConstants.SORT_CATEGORIES_BY;
 import static com.ecommerce.project.config.AppConstants.SORT_DIR;
@@ -53,11 +54,11 @@ public class ProductController {
             @RequestParam( name = "sortBy", defaultValue = SORT_CATEGORIES_BY, required = false ) String sortBy,
             @RequestParam( name = "sortOrder", defaultValue = SORT_DIR, required = false ) String sortOrder
     ){
-        ProductResponse productResponse = productService.searchProductsByKeyword(keyword, pageNumber, pageSize,  sortBy,  sortOrder);
+        ProductResponse productResponse = productService.searchProductByKeyword(keyword, pageNumber, pageSize,  sortBy,  sortOrder);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
     @PostMapping("/admin/categories/{categoryId}/product")
-    public ResponseEntity<ProductDTO> addProduct (@RequestBody ProductDTO productDTO,
+    public ResponseEntity<ProductDTO> addProduct (@Valid @RequestBody ProductDTO productDTO,
                                                   @PathVariable Long categoryId){
         ProductDTO savedProductDTO =  productService.addProduct(categoryId, productDTO );
         return new ResponseEntity<>(savedProductDTO, HttpStatus.CREATED);
@@ -76,8 +77,8 @@ public class ProductController {
     }
 
     @PutMapping ("/admin/products/{productId}/image")
-    public ResponseEntity<ProductDTO> updateProductImage (@Valid @PathVariable Long productId,
-                                                          @RequestParam("Image") MultipartFile image){
+    public ResponseEntity<ProductDTO> updateProductImage (@PathVariable Long productId,
+                                                          @RequestParam("image") MultipartFile image) throws IOException {
         ProductDTO updatedProductDTO = productService.updateProductImage( productId, image);
         return new ResponseEntity<>(updatedProductDTO, HttpStatus.OK);
     }
