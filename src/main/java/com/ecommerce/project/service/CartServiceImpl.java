@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.stream.*;
 import java.util.List;
 import com.ecommerce.project.util.AuthUtil;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CartServiceImpl implements CartService{
 
     @Autowired
@@ -110,6 +112,16 @@ public class CartServiceImpl implements CartService{
                     return cartDTO;
                 } ).collect(Collectors.toList());
         return cartDTOs;
+    }
+
+    @Override
+    public CartDTO getCart(String emailId, Long cartId) {
+        Cart cart = cartRepository.findCartByEmailAndCartId(emailId, cartId);
+        if ( cart == null){
+            throw new ResourceNotFoundException("Cart","cartId", cartId);
+        }
+        CartDTO cartDTO = modelMapper.map(cart , CartDTO.class);
+        return cartDTO;
     }
 
 

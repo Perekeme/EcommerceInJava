@@ -9,4 +9,6 @@ public interface CartService {
     public CartDTO addProductToCart(Long productId, Integer quantity);
 
    public List<CartDTO> getAllCarts();
+
+    CartDTO getCart(String emailId, Long cartId);
 }
