@@ -82,7 +82,7 @@ public class CartServiceImpl implements CartService{
 
         CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
 
-        //return updated cat
+        //return updated cart
 
         List<CartItem> cartItems = cart.getCartItems();
 
