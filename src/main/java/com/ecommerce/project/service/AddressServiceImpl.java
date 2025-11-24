@@ -1,15 +1,18 @@
 package com.ecommerce.project.service;
 
-import com.ecommerce.project.exceptions.APIException;
-import com.ecommerce.project.model.*;
-import com.ecommerce.project.payload.*;
+import com.ecommerce.project.exceptions.ResourceNotFoundException;
+import com.ecommerce.project.model.Address;
+import com.ecommerce.project.model.User;
+import com.ecommerce.project.payload.AddressDTO;
 import com.ecommerce.project.repositories.AddressRepository;
+import com.ecommerce.project.repositories.UserRepository;
 import com.ecommerce.project.util.AuthUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AddressServiceImpl implements AddressService {
@@ -23,20 +26,10 @@ public class AddressServiceImpl implements AddressService {
     @Autowired
     private FileService fileService;
 
-//    private String createAddress(){
-//        Address userAddress = addressRepository.findAddressByEmail(authUtil.loggedInEmail());
-//        if (userAddress != null){
-//            return  userAddress;
-//        }
-//
-//        Address address = new Address();
-//
-//        cart.setTotalPrice(0.00);
-//        cart.setUser(authUtil.loggedInUser());
-//
-//        Cart newCart = cartRepository.save(cart);
-//        return newCart;
-//    }
+    @Autowired
+    private UserRepository userRepository;
+
+
     @Override
     public AddressDTO createAddress(AddressDTO addressDTO, User user) {
        Address address = modelMapper.map(addressDTO, Address.class);
@@ -51,60 +44,98 @@ public class AddressServiceImpl implements AddressService {
        return modelMapper.map(savedAddress, AddressDTO.class);
     }
 
-//    @Override
-//    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
-//        // Validate if the category name is already present
-//        if (categoryRepository.findByCategoryName(categoryDTO.getCategoryName()) != null) {
-//            throw new APIException(
-//                    "Category with the name '" + categoryDTO.getCategoryName() + "' already exists."
-//            );
-//        }
-//        // Map DTO -> Entity
-//        Category category = new Category();
-//        category.setCategoryName(categoryDTO.getCategoryName());
-//
-//        //Save the new category and return as DTO
-//        Category savedCategory = categoryRepository.save(category);
-//        CategoryDTO savedCategoryDTO = new CategoryDTO(savedCategory.getCategoryId(), savedCategory.getCategoryName());
-//        return savedCategoryDTO;
-//    }
-//    private Cart createCart(){
-//        Cart userCart  = cartRepository.findCartByEmail(authUtil.loggedInEmail());
-//        if (userCart != null){
-//            return  userCart;
-//        }
-//
-//        Cart cart = new Cart();
-//        cart.setTotalPrice(0.00);
-//        cart.setUser(authUtil.loggedInUser());
-//
-//        Cart newCart = cartRepository.save(cart);
-//        return newCart;
-//    }
-
     @Override
-    public AddressResponse getAllAddresses(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        return null;
+    public List<AddressDTO> getAddresses() {
+        List<Address> addresses = addressRepository.findAll();
+         List<AddressDTO> addressDTOs = addresses.stream()
+                .map( address -> modelMapper.map(address,AddressDTO.class))
+                .collect(Collectors.toList());
+        return addressDTOs;
     }
+
 
     @Override
     public AddressDTO getAddressById(Long addressId) {
-        return null;
-    }
 
-    @Override
-    public AddressDTO getAddress(String emailId, Long addressId) {
-        return null;
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow( () -> new ResourceNotFoundException( "Address", "Address Id", addressId));
+
+        return modelMapper.map(address, AddressDTO.class);
     }
 
     @Override
     public AddressDTO updateAddress(AddressDTO addressDTO, long addressId) {
-        return null;
+
+        Long userId = authUtil.loggedInUserId();
+        Address address = addressRepository.findAddressByUserId(userId, addressId);
+
+        // Perform Validations
+        if (address == null) {
+            throw new ResourceNotFoundException("Address","Address Id", addressId);
+        }
+        address.setCity(addressDTO.getCity());
+        address.setState(addressDTO.getState());
+        address.setStreet(addressDTO.getStreet());
+        address.setCountry(addressDTO.getCountry());
+        address.setPinCode(addressDTO.getPinCode());
+        address.setBuildingName(addressDTO.getBuildingName());
+
+        Address updatedAddress = addressRepository.save(address);
+
+        return modelMapper.map(updatedAddress, AddressDTO.class);
     }
+//    @Override
+//    public AddressDTO updateAddress(AddressDTO addressDTO, long addressId) {
+//
+//        Address address = addressRepository.findById(addressId)
+//                .orElseThrow( () -> new ResourceNotFoundException( "Address", "Address Id", addressId));
+//
+//
+//        address.setCity(addressDTO.getCity());
+//        address.setState(addressDTO.getState());
+//        address.setStreet(addressDTO.getStreet());
+//        address.setCountry(addressDTO.getCountry());
+//        address.setPinCode(addressDTO.getPinCode());
+//        address.setBuildingName(addressDTO.getBuildingName());
+//
+//        Address updatedAddress = addressRepository.save(address);
+//
+//        User user = address.getUser();
+//        user.getAddresses().removeIf(addresss -> address.getAddressId().equals(addressId));
+//        user.getAddresses().add(updatedAddress);
+//        userRepository.save(user);
+//
+//        return modelMapper.map(updatedAddress, AddressDTO.class);
+//    }
 
     @Override
     public String deleteAddress(Long addressId) {
-        return null;
+
+        Long userId = authUtil.loggedInUserId();
+        Address address = addressRepository.findAddressByUserId(userId, addressId);
+
+        // Perform Validations
+        if (address == null) {
+            throw new ResourceNotFoundException("Address","Address Id", addressId);
+        }
+
+        addressRepository.delete(address);
+
+
+        return "Address deleted successfully with address Id "+ addressId;
+
+    }
+
+    @Override
+    public List<AddressDTO> getUserAddresses(User user) {
+
+        List<Address> addresses = user.getAddresses();
+        List<AddressDTO> addressDTOs = addresses.stream()
+                .map( address -> modelMapper.map(address,AddressDTO.class))
+                .collect(Collectors.toList());
+        return addressDTOs;
+
+
     }
 
 }

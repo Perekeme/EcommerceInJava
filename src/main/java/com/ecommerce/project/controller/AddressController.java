@@ -45,36 +45,32 @@ public class AddressController {
     }
 
     @GetMapping("/addresses")
-    public ResponseEntity<AddressResponse>  getAddresses (@RequestParam( name = "pageNumber" , defaultValue = AppConstants.PAGE_NUMBER, required = false ) Integer pageNumber,
-                                                           @RequestParam( name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false ) Integer pageSize,
-                                                           @RequestParam( name = "sortBy", defaultValue = SORT_CATEGORIES_BY, required = false ) String sortBy,
-                                                           @RequestParam( name = "sortOrder", defaultValue = SORT_DIR, required = false ) String sortOrder){
-        AddressResponse addressResponse = addressService.getAllAddresses(pageNumber, pageSize, sortBy , sortOrder);
+    public ResponseEntity<List<AddressDTO>>  getAddresses (){
+        List<AddressDTO> addressList = addressService.getAddresses();
 
-        return new ResponseEntity<AddressResponse>(addressResponse, HttpStatus.OK);
+        return new ResponseEntity<>(addressList, HttpStatus.OK);
     }
+
      @GetMapping("/addresses/{addressId}")
     public ResponseEntity<AddressDTO>  getAddressById ( @PathVariable Long addressId){
 
         AddressDTO addressDTO = addressService.getAddressById(addressId);
 
-         return new ResponseEntity<AddressDTO>(addressDTO, HttpStatus.OK);
+         return new ResponseEntity<>(addressDTO, HttpStatus.OK);
     }
 
     @GetMapping("/users/addresses")
-    public ResponseEntity<AddressDTO> getAddressByUser (){
-        String emailId = authUtil.loggedInEmail();
-        Address address = AddressRepository.findAddressByEmail(emailId);
-        Long addressId = address.getAddressId();
-        AddressDTO addressDTO = addressService.getAddress(emailId, addressId);
-        return  new ResponseEntity<AddressDTO> ( addressDTO, HttpStatus.OK);
+    public ResponseEntity<List<AddressDTO>> getUserAddresses (){
+       User user = authUtil.loggedInUser();
+       List<AddressDTO> addressList = addressService.getUserAddresses(user);
+       return new ResponseEntity<> (addressList, HttpStatus.OK);
 
     }
 
     @PutMapping ("/addresses/{addressId}")
     public ResponseEntity<AddressDTO> updateAddress ( @Valid @PathVariable long addressId,  @RequestBody AddressDTO addressDTO ) {
         AddressDTO updatedAddressDTO = addressService.updateAddress( addressDTO, addressId );
-        return  new ResponseEntity<AddressDTO> ( updatedAddressDTO, HttpStatus.OK);
+        return  new ResponseEntity<> ( updatedAddressDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/addresses/{addressId}")
