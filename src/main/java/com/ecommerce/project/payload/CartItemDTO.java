@@ -13,7 +13,7 @@ public class CartItemDTO {
     private Long cartItemId;
     private CartDTO cart;
 
-    private ProductDTO productDTO;
+    private ProductDTO product;
 
     private  Integer quantity;
 

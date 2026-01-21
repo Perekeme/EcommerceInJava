@@ -26,7 +26,7 @@ public class OrderController {
         String emailId = authUtil.loggedInEmail();
        OrderDTO order = orderService.placeOrder(
                 emailId,
-                orderRequestDTO,
+                orderRequestDTO.getAddressId(),
                 paymentMethod,
                 orderRequestDTO.getPgName(),
                 orderRequestDTO.getPgPaymentId(),
